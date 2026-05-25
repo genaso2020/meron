@@ -99,6 +99,8 @@ class GameController extends Controller
                 'fight_number',
                 'schedule_time',
                 'status',
+                'min_bet_amount',
+                'max_bet_amount',
             ])
             ->paginate($matchPerPage, ['*'], 'matchPage')
             ->withQueryString();

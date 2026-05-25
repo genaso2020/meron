@@ -12,7 +12,12 @@ use Illuminate\Validation\Rule;
 
 class MatchController extends Controller
 {
-    private function assertCockEntryNumbersAreUniqueWithinEvent(int $eventId, ?int $cock1Id, ?int $cock2Id, ?int $ignoreMatchId = null): void
+    private function assertCockEntryNumbersAreUniqueWithinEvent(
+        int $eventId,
+        ?int $cock1Id,
+        ?int $cock2Id,
+        ?int $ignoreMatchId = null,
+    ): void
     {
         $cock1Entry = null;
         $cock2Entry = null;
@@ -30,6 +35,7 @@ class MatchController extends Controller
         }
 
         $query = GameMatch::query()->where('event_id', $eventId);
+
         if ($ignoreMatchId) {
             $query->where('id', '!=', $ignoreMatchId);
         }
@@ -75,7 +81,9 @@ class MatchController extends Controller
             'cock2_color' => ['nullable', 'string', Rule::in(['WHITE', 'RED'])],
             'fight_number' => ['required', 'integer', 'min:0'],
             'schedule_time' => ['nullable', 'date'],
-            'status' => ['required', Rule::in(['pending', 'ongoing', 'done'])],
+            'status' => ['required', Rule::in(['pending', 'active', 'play', 'stop', 'done'])],
+            'min_bet_amount' => ['nullable', 'numeric', 'min:0'],
+            'max_bet_amount' => ['nullable', 'numeric', 'min:0', 'gte:min_bet_amount'],
         ]);
 
         $eventId = (int) $validated['event_id'];
@@ -83,7 +91,13 @@ class MatchController extends Controller
 
         $cock1Id = array_key_exists('cock1_id', $validated) ? (int) ($validated['cock1_id'] ?? 0) : 0;
         $cock2Id = array_key_exists('cock2_id', $validated) ? (int) ($validated['cock2_id'] ?? 0) : 0;
-        $this->assertCockEntryNumbersAreUniqueWithinEvent($eventId, $cock1Id ?: null, $cock2Id ?: null);
+        $this->assertCockEntryNumbersAreUniqueWithinEvent(
+            $eventId,
+            $cock1Id ?: null,
+            $cock2Id ?: null,
+        );
+
+        $fightNumber = (int) $validated['fight_number'];
 
         GameMatch::query()->create([
             'event_id' => $eventId,
@@ -96,9 +110,11 @@ class MatchController extends Controller
             'cock2_id' => $cock2Id ?: null,
             'cock1_color' => $validated['cock1_color'] ?? null,
             'cock2_color' => $validated['cock2_color'] ?? null,
-            'fight_number' => (int) $validated['fight_number'],
+            'fight_number' => $fightNumber,
             'schedule_time' => $validated['schedule_time'] ?? null,
             'status' => $validated['status'],
+            'min_bet_amount' => $validated['min_bet_amount'] ?? 0,
+            'max_bet_amount' => $validated['max_bet_amount'] ?? 0,
         ]);
 
         return back(303);
@@ -106,6 +122,36 @@ class MatchController extends Controller
 
     public function update(Request $request, GameMatch $match): RedirectResponse
     {
+        $isStatusOnly =
+            !$request->has('event_id') &&
+            !$request->has('fight_number') &&
+            !$request->has('schedule_time') &&
+            !$request->has('cock1_id') &&
+            !$request->has('cock2_id') &&
+            !$request->has('cock1_color') &&
+            !$request->has('cock2_color') &&
+            !$request->has('min_bet_amount') &&
+            !$request->has('max_bet_amount');
+
+        if ($isStatusOnly) {
+            $validated = $request->validate([
+                'status' => ['required', Rule::in(['pending', 'active', 'play', 'stop', 'done'])],
+                'touch' => ['nullable', 'boolean'],
+            ]);
+
+            $update = [
+                'status' => $validated['status'],
+            ];
+
+            if (!empty($validated['touch'])) {
+                $update['updated_at'] = now();
+            }
+
+            $match->update($update);
+
+            return back(303);
+        }
+
         $validated = $request->validate([
             'event_id' => ['required', 'integer', 'exists:games,id'],
             'cock1_id' => ['nullable', 'integer', 'exists:cocks,id', 'different:cock2_id'],
@@ -114,7 +160,10 @@ class MatchController extends Controller
             'cock2_color' => ['nullable', 'string', Rule::in(['WHITE', 'RED'])],
             'fight_number' => ['required', 'integer', 'min:0'],
             'schedule_time' => ['nullable', 'date'],
-            'status' => ['required', Rule::in(['pending', 'ongoing', 'done'])],
+            'status' => ['required', Rule::in(['pending', 'active', 'play', 'stop', 'done'])],
+            'min_bet_amount' => ['nullable', 'numeric', 'min:0'],
+            'max_bet_amount' => ['nullable', 'numeric', 'min:0', 'gte:min_bet_amount'],
+            'touch' => ['nullable', 'boolean'],
         ]);
 
         $eventId = (int) $validated['event_id'];
@@ -122,9 +171,16 @@ class MatchController extends Controller
 
         $cock1Id = array_key_exists('cock1_id', $validated) ? (int) ($validated['cock1_id'] ?? 0) : 0;
         $cock2Id = array_key_exists('cock2_id', $validated) ? (int) ($validated['cock2_id'] ?? 0) : 0;
-        $this->assertCockEntryNumbersAreUniqueWithinEvent($eventId, $cock1Id ?: null, $cock2Id ?: null, (int) $match->id);
+        $this->assertCockEntryNumbersAreUniqueWithinEvent(
+            $eventId,
+            $cock1Id ?: null,
+            $cock2Id ?: null,
+            (int) $match->id,
+        );
 
-        $match->update([
+        $fightNumber = (int) $validated['fight_number'];
+
+        $update = [
             'event_id' => $eventId,
             'event_name' => $game->name,
             'event_location' => $game->location,
@@ -135,10 +191,18 @@ class MatchController extends Controller
             'cock2_id' => $cock2Id ?: null,
             'cock1_color' => $validated['cock1_color'] ?? null,
             'cock2_color' => $validated['cock2_color'] ?? null,
-            'fight_number' => (int) $validated['fight_number'],
+            'fight_number' => $fightNumber,
             'schedule_time' => $validated['schedule_time'] ?? null,
             'status' => $validated['status'],
-        ]);
+            'min_bet_amount' => $validated['min_bet_amount'] ?? 0,
+            'max_bet_amount' => $validated['max_bet_amount'] ?? 0,
+        ];
+
+        if (!empty($validated['touch'])) {
+            $update['updated_at'] = now();
+        }
+
+        $match->update($update);
 
         return back(303);
     }

@@ -26,12 +26,16 @@ class GameMatch extends Model
         'fight_number',
         'schedule_time',
         'status',
+        'min_bet_amount',
+        'max_bet_amount',
     ];
 
     protected $casts = [
         'fight_number' => 'integer',
         'schedule_time' => 'datetime',
         'event_date' => 'date',
+        'min_bet_amount' => 'decimal:2',
+        'max_bet_amount' => 'decimal:2',
     ];
 
     public function cock1(): BelongsTo

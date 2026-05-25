@@ -116,139 +116,143 @@ html, body { height: 100%; margin: 0; font-family: 'Oswald', sans-serif; }
     <div class="panel-1 p-4" style="border-right: 1px solid #2d3143;"><!-- Calculator Display -->
      <div class="calc-display" id="calcDisplay">
       0
-     </div><!-- Info Box -->
-     <div class="info-box">
-      <div class="flex justify-between items-start">
-       <div>
-        <div style="font-size:36px; font-weight:700; color:#00ff88;">
-         100
-        </div>
-        <div style="font-size:14px; color:#8a8fa3;">
-         Minimum
-        </div>
-       </div>
-       <div class="text-center">
-        <div id="dateTime" style="font-size:22px; font-weight:600; color:#f1c40f;"></div>
-        <div id="mainTitle" style="font-size:36px; font-weight:700; color:#fff; margin-top:4px;">
-         Place Your Bet Now!!!
-        </div>
-        <div id="fightNoDisplay" style="font-size:38px; font-weight:700; color:#f39c12; margin-top:4px;">
-         Fighting No : --
-        </div>
-       </div>
-       <div class="text-right">
+     </div>
+     <!-- Info Box -->
+        <div class="info-box">
+        <div class="flex justify-between items-start">
+            <div>
+                <div style="font-size:36px; font-weight:700; color:#00ff88;">
+                <span id="minBetAmountDisplay">0</span>
+                </div>
+                <div style="font-size:14px; color:#8a8fa3;">
+                Minimum
+                </div>
+            </div>
+            <div class="text-center">
+                <div id="dateTime" style="font-size:22px; font-weight:600; color:#f1c40f;"></div>
+                <div id="mainTitle" style="font-size:36px; font-weight:700; color:#fff; margin-top:4px;">
+                    Place Your Bet Now!!!
+                </div>
+                <div id="fightNoDisplay" style="font-size:38px; font-weight:700; color:#f39c12; margin-top:4px;">
+                    Fighting No : XX
+                </div>
+                </div>
+        <div class="text-right">
         <div style="font-size:36px; font-weight:700; color:#e74c3c;">
-         100,000
+        <span id="maxBetAmountDisplay">0</span>
         </div>
         <div style="font-size:14px; color:#8a8fa3;">
-         Maximum
+        Maximum
         </div>
-       </div>
-      </div>
-     </div><!-- 3 Bet Cards -->
-     <div class="grid grid-cols-3 gap-3 mt-3">
-      <div class="bet-card card-meron" data-choice="meron" onclick="selectCard('meron')">
-       <div class="bet-card-header">
-        <div class="flex items-center gap-2"><i data-lucide="users" style="width:16px;height:16px;"></i> <span class="font-bold" id="meronUsers">24</span>
         </div>
-        <div class="flex items-center gap-2"><span class="font-bold" id="meronMoney">₱48,200</span> <i data-lucide="banknote" style="width:16px;height:16px;"></i>
         </div>
-       </div>
-       <div class="bet-card-body">
-        <div style="font-size:36px; font-weight:700;">
-         MERON
         </div>
-        <div style="font-size:16px; color:rgba(255,255,255,0.8); margin-top:4px;">
-         Win: <span id="meronPct">1.85x</span>
-        </div>
-       </div>
-      </div>
-      <div class="bet-card card-draw" data-choice="draw" onclick="selectCard('draw')">
-       <div class="bet-card-header">
-        <div class="flex items-center gap-2"><i data-lucide="users" style="width:16px;height:16px;"></i> <span class="font-bold" id="drawUsers">3</span>
-        </div>
-        <div class="flex items-center gap-2"><span class="font-bold" id="drawMoney">₱1,500</span> <i data-lucide="banknote" style="width:16px;height:16px;"></i>
-        </div>
-       </div>
-       <div class="bet-card-body">
-        <div style="font-size:36px; font-weight:700;">
-         DRAW
-        </div>
-        <div style="font-size:16px; color:rgba(255,255,255,0.8); margin-top:4px;">
-         Win: <span id="drawPct">8.00x</span>
-        </div>
-       </div>
-      </div>
-      <div class="bet-card card-wala" data-choice="wala" onclick="selectCard('wala')">
-       <div class="bet-card-header">
-        <div class="flex items-center gap-2"><i data-lucide="users" style="width:16px;height:16px;"></i> <span class="font-bold" id="walaUsers">31</span>
-        </div>
-        <div class="flex items-center gap-2"><span class="font-bold" id="walaMoney">₱62,800</span> <i data-lucide="banknote" style="width:16px;height:16px;"></i>
-        </div>
-       </div>
-       <div class="bet-card-body">
-        <div style="font-size:36px; font-weight:700;">
-         WALA
-        </div>
-        <div style="font-size:16px; color:rgba(255,255,255,0.8); margin-top:4px;">
-         Win: <span id="walaPct">1.42x</span>
-        </div>
-       </div>
-      </div>
-     </div><!-- Fight Number Carousel -->
-     <div class="mt-3">
-      <div class="fight-carousel" id="fightCarousel"></div>
-     </div>Quick Bet Buttons
 
-     <!-- Numeric Keypad -->
-     <div class="grid grid-cols-5 gap-2 mt-3"><button class="quick-bet-btn" onclick="addQuickBet(1000)">₱1000</button> <button class="quick-bet-btn" onclick="addQuickBet(5000)">₱5,000</button> <button class="quick-bet-btn" onclick="addQuickBet(10000)">₱10,000</button> <button class="quick-bet-btn" onclick="addQuickBet(50000)">₱50,000</button> <button class="quick-bet-btn" onclick="addQuickBet(100000)">₱100K</button>
-     </div><!-- Numeric Keypad -->
-     <div class="keypad-grid" id="keypadGrid"></div><!-- 3D Action Cards -->
-     <div class="grid grid-cols-5 gap-3 mt-4">
-      <div class="card-3d" style="background: linear-gradient(135deg, #85FF9E, #6ae87a);">
-       <span>WINNING COLL</span>
-      </div>
-      <div class="card-3d" style="background: linear-gradient(135deg, #7e92a0, #6b7d8f);">
-       <span>REFUND TICKET</span>
-      </div>
-      <div class="card-3d" id="lockBtn" onclick="window.hardLogout && window.hardLogout()" style="background: linear-gradient(135deg, #dbfe87, #c8e575);">
-       <span>LOCK</span>
-      </div>
-      <div class="card-3d" style="background: linear-gradient(135deg, #A6F4DC, #90e8ce);">
-       <span>SOD</span>
-      </div>
-      <div class="card-3d" style="background: linear-gradient(135deg, #AE5C04, #9a4d03);">
-       <span>EOD</span>
-      </div>
-     </div>
-    <!-- Teller Info Row -->
-     <div class="flex justify-between items-center mt-4 px-4 py-3 rounded-lg" style="background: #2a2d3a; border: 1px solid #3d4158;">
-      <div>
-       <div style="font-size: 12px; color: #8a8fa3; margin-bottom: 4px;">
-        Teller No
-       </div>
-       <div style="font-size: 28px; font-weight: 700; color: #f1c40f;">
-        01
-       </div>
-      </div>
-      <div style="text-align: center;">
-       <div style="font-size: 12px; color: #8a8fa3; margin-bottom: 4px;">
-        Outlet/Branch
-       </div>
-       <div style="font-size: 24px; font-weight: 700; color: #bee9e8;">
-        LAPU LAPU CITY
-       </div>
-      </div>
-      <div style="text-align: right;">
-       <div style="font-size: 12px; color: #8a8fa3; margin-bottom: 4px;">
-        Teller Name
-       </div>
-       <div style="font-size: 24px; font-weight: 700; color: #00ff88;">
-        TELLER_01
-       </div>
-      </div>
-     </div>
-    </div><!-- PANEL 2 -->
+        <!-- 3 Bet Cards -->
+        <div class="grid grid-cols-3 gap-3 mt-3">
+            <div class="bet-card card-meron" data-choice="meron" onclick="selectCard('meron')">
+            <div class="bet-card-header">
+                <div class="flex items-center gap-2"><i data-lucide="users" style="width:16px;height:16px;"></i> <span class="font-bold" id="meronUsers">24</span>
+                </div>
+                <div class="flex items-center gap-2"><span class="font-bold" id="meronMoney">₱48,200</span> <i data-lucide="banknote" style="width:16px;height:16px;"></i>
+                </div>
+            </div>
+            <div class="bet-card-body">
+                <div style="font-size:36px; font-weight:700;">
+                MERON
+                </div>
+                <div style="font-size:16px; color:rgba(255,255,255,0.8); margin-top:4px;">
+                Win: <span id="meronPct">1.85x</span>
+                </div>
+            </div>
+            </div>
+            <div class="bet-card card-draw" data-choice="draw" onclick="selectCard('draw')">
+            <div class="bet-card-header">
+                <div class="flex items-center gap-2"><i data-lucide="users" style="width:16px;height:16px;"></i> <span class="font-bold" id="drawUsers">3</span>
+                </div>
+                <div class="flex items-center gap-2"><span class="font-bold" id="drawMoney">₱1,500</span> <i data-lucide="banknote" style="width:16px;height:16px;"></i>
+                </div>
+            </div>
+            <div class="bet-card-body">
+                <div style="font-size:36px; font-weight:700;">
+                DRAW
+                </div>
+                <div style="font-size:16px; color:rgba(255,255,255,0.8); margin-top:4px;">
+                Win: <span id="drawPct">8.00x</span>
+                </div>
+            </div>
+            </div>
+            <div class="bet-card card-wala" data-choice="wala" onclick="selectCard('wala')">
+            <div class="bet-card-header">
+                <div class="flex items-center gap-2"><i data-lucide="users" style="width:16px;height:16px;"></i> <span class="font-bold" id="walaUsers">31</span>
+                </div>
+                <div class="flex items-center gap-2"><span class="font-bold" id="walaMoney">₱62,800</span> <i data-lucide="banknote" style="width:16px;height:16px;"></i>
+                </div>
+            </div>
+            <div class="bet-card-body">
+                <div style="font-size:36px; font-weight:700;">
+                WALA
+                </div>
+                <div style="font-size:16px; color:rgba(255,255,255,0.8); margin-top:4px;">
+                Win: <span id="walaPct">1.42x</span>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <!-- Numeric Keypad -->
+        <div class="grid grid-cols-5 gap-2 mt-3"><button class="quick-bet-btn" onclick="addQuickBet(1000)">₱1000</button> <button class="quick-bet-btn" onclick="addQuickBet(5000)">₱5,000</button> <button class="quick-bet-btn" onclick="addQuickBet(10000)">₱10,000</button> <button class="quick-bet-btn" onclick="addQuickBet(50000)">₱50,000</button> <button class="quick-bet-btn" onclick="addQuickBet(100000)">₱100K</button>
+        </div>
+
+        <!-- Numeric Keypad -->
+        <div class="keypad-grid" id="keypadGrid"></div><!-- 3D Action Cards -->
+            <div class="grid grid-cols-5 gap-3 mt-4">
+                <div class="card-3d" style="background: linear-gradient(135deg, #85FF9E, #6ae87a);">
+                <span>WINNING COLL</span>
+                </div>
+                <div class="card-3d" style="background: linear-gradient(135deg, #7e92a0, #6b7d8f);">
+                <span>REFUND TICKET</span>
+                </div>
+                <div class="card-3d" id="lockBtn" onclick="window.hardLogout && window.hardLogout()" style="background: linear-gradient(135deg, #dbfe87, #c8e575);">
+                <span>LOCK</span>
+                </div>
+                <div class="card-3d" style="background: linear-gradient(135deg, #A6F4DC, #90e8ce);">
+                <span>SOD</span>
+                </div>
+                <div class="card-3d" style="background: linear-gradient(135deg, #AE5C04, #9a4d03);">
+                <span>EOD</span>
+                </div>
+            </div>
+            <!-- Teller Info Row -->
+            <div class="flex justify-between items-center mt-4 px-4 py-3 rounded-lg" style="background: #2a2d3a; border: 1px solid #3d4158;">
+                <div>
+                    <div style="font-size: 12px; color: #8a8fa3; margin-bottom: 4px;">
+                        Teller No
+                    </div>
+                    <div style="font-size: 28px; font-weight: 700; color: #f1c40f;">
+                        {{ $cashierTellerNo ?? '' }}
+                    </div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 12px; color: #8a8fa3; margin-bottom: 4px;">
+                        Outlet/Branch
+                    </div>
+                    <div style="font-size: 24px; font-weight: 700; color: #bee9e8;">
+                        {{ $cashierOutlet ?? '' }}
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 12px; color: #8a8fa3; margin-bottom: 4px;">
+                        Teller Name
+                    </div>
+                    <div style="font-size: 24px; font-weight: 700; color: #00ff88;">
+                        {{ $cashierTellerName ?? '' }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    <!-- PANEL 2 -->
+
     <div class="panel-2 p-4" style="border-right: 1px solid #2d3143;">
      <div style="font-size:20px; font-weight:700; color:#f1c40f; margin-bottom:12px;">
       📋 Bet History
@@ -281,11 +285,32 @@ html, body { height: 100%; margin: 0; font-family: 'Oswald', sans-serif; }
     </div>
    </div>
   </div>
+  <script type="application/json" id="cashierHasActiveMatch">@json($cashierHasActiveMatch ?? false)</script>
+  <script type="application/json" id="cashierActiveMatches">@json($cashierActiveMatches ?? [])</script>
+  <script type="application/json" id="cashierBetAggByMatch">@json($cashierBetAggByMatch ?? [])</script>
+  <script type="application/json" id="cashierBetAggByMatchSide">@json($cashierBetAggByMatchSide ?? [])</script>
+
   <script>
+function readJsonById(id, fallback) {
+  const el = document.getElementById(id);
+  if (!el) return fallback;
+  try {
+    return JSON.parse(el.textContent || '');
+  } catch (e) {
+    return fallback;
+  }
+}
+
+window.cashierHasActiveMatch = readJsonById('cashierHasActiveMatch', false);
+window.cashierActiveMatches = readJsonById('cashierActiveMatches', []);
+window.cashierBetAggByMatch = readJsonById('cashierBetAggByMatch', {});
+window.cashierBetAggByMatchSide = readJsonById('cashierBetAggByMatchSide', {});
+
 // State
 let calcValue = '0';
 let selectedCard = null;
 let selectedFight = null;
+let selectedMatchId = null;
 let carouselLocked = false;
 const betHistoryList = [];
 
@@ -304,20 +329,106 @@ setInterval(updateDateTime, 1000);
 // Fight Carousel
 function buildCarousel() {
   const c = document.getElementById('fightCarousel');
-  for (let i = 1; i <= 30; i++) {
+
+  const matches = Array.isArray(window.cashierActiveMatches) ? window.cashierActiveMatches : [];
+  if (!c) {
+    if (matches.length) {
+      const m = matches[0];
+      const fightNo = Number(m?.fight_number ?? 0);
+      selectedFight = fightNo || 1;
+      selectedMatchId = m?.id ?? null;
+      document.getElementById('fightNoDisplay').textContent = `Fighting No : ${String(selectedFight).padStart(2,'0')}`;
+      updateBetLimitsForSelectedMatch();
+      updateTotalsForSelectedMatch();
+    } else {
+      selectedFight = null;
+      selectedMatchId = null;
+      document.getElementById('fightNoDisplay').textContent = 'Fighting No : --';
+      updateBetLimitsForSelectedMatch();
+      updateTotalsForSelectedMatch();
+    }
+    return;
+  }
+
+  c.innerHTML = '';
+
+  matches.forEach((m, idx) => {
+    const fightNo = Number(m?.fight_number ?? 0);
     const d = document.createElement('div');
     d.className = 'fight-card';
-    d.textContent = i;
-    d.dataset.fight = i;
+    d.textContent = fightNo ? String(fightNo) : String(idx + 1);
+    d.dataset.fight = fightNo ? String(fightNo) : '';
+    d.dataset.matchId = String(m?.id ?? '');
+
     d.addEventListener('click', () => {
       if (carouselLocked) return;
       document.querySelectorAll('.fight-card').forEach(f => f.classList.remove('active'));
       d.classList.add('active');
-      selectedFight = i;
-      document.getElementById('fightNoDisplay').textContent = `Fighting No : ${String(i).padStart(2,'0')}`;
+      selectedFight = fightNo || (idx + 1);
+      selectedMatchId = m?.id ?? null;
+      document.getElementById('fightNoDisplay').textContent = `Fighting No : ${String(selectedFight).padStart(2,'0')}`;
+      updateBetLimitsForSelectedMatch();
+      updateTotalsForSelectedMatch();
     });
+
     c.appendChild(d);
+  });
+
+  if (matches.length) {
+    const first = c.querySelector('.fight-card');
+    if (first) first.click();
+  } else {
+    selectedFight = null;
+    selectedMatchId = null;
+    document.getElementById('fightNoDisplay').textContent = 'Fighting No : --';
+    updateBetLimitsForSelectedMatch();
+    updateTotalsForSelectedMatch();
   }
+}
+
+function peso(n) {
+  const v = Number(n ?? 0);
+  return `₱${v.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+}
+
+function amountNoSymbol(n) {
+  const v = Number(n ?? 0);
+  return v.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+
+function updateBetLimitsForSelectedMatch() {
+  const matches = Array.isArray(window.cashierActiveMatches) ? window.cashierActiveMatches : [];
+  const m = selectedMatchId != null ? matches.find((x) => String(x?.id ?? '') === String(selectedMatchId)) : null;
+
+  const minEl = document.getElementById('minBetAmountDisplay');
+  const maxEl = document.getElementById('maxBetAmountDisplay');
+  if (!minEl || !maxEl) return;
+
+  if (!m) {
+    minEl.textContent = '0';
+    maxEl.textContent = '0';
+    return;
+  }
+
+  minEl.textContent = amountNoSymbol(m?.min_bet_amount ?? 0);
+  maxEl.textContent = amountNoSymbol(m?.max_bet_amount ?? 0);
+}
+
+function updateTotalsForSelectedMatch() {
+  const bySide = window.cashierBetAggByMatchSide || {};
+  const data = (selectedMatchId != null && bySide[String(selectedMatchId)]) ? bySide[String(selectedMatchId)] : (selectedMatchId != null && bySide[selectedMatchId]) ? bySide[selectedMatchId] : null;
+
+  const meron = (data && (data.MERON || data['MERON'])) ? (data.MERON || data['MERON']) : null;
+  const draw = (data && (data.DRAW || data['DRAW'])) ? (data.DRAW || data['DRAW']) : null;
+  const wala = (data && (data.WALA || data['WALA'])) ? (data.WALA || data['WALA']) : null;
+
+  document.getElementById('meronUsers').textContent = String(meron?.total_bets ?? 0);
+  document.getElementById('drawUsers').textContent = String(draw?.total_bets ?? 0);
+  document.getElementById('walaUsers').textContent = String(wala?.total_bets ?? 0);
+
+  document.getElementById('meronMoney').textContent = peso(meron?.total_amount ?? 0);
+  document.getElementById('drawMoney').textContent = peso(draw?.total_amount ?? 0);
+  document.getElementById('walaMoney').textContent = peso(wala?.total_amount ?? 0);
 }
 
 // Card selection
@@ -437,6 +548,7 @@ function showToast(msg) {
 }
 
 buildKeypad();
+buildCarousel();
 lucide.createIcons();
 
 // Element SDK

@@ -230,7 +230,9 @@ export default function GamesIndex({ games, matches, cocks, cocks2, filters = {}
     const statusOptions = useMemo(
         () => [
             { value: 'pending', label: 'pending' },
-            { value: 'ongoing', label: 'ongoing' },
+            { value: 'active', label: 'active' },
+            { value: 'play', label: 'play' },
+            { value: 'stop', label: 'stop' },
             { value: 'done', label: 'done' },
         ],
         [],
@@ -423,6 +425,7 @@ export default function GamesIndex({ games, matches, cocks, cocks2, filters = {}
     const [editingMatchId, setEditingMatchId] = useState(null);
     const [offcanvasMatchSearch, setOffcanvasMatchSearch] = useState('');
     const [openMatchActionMenu, setOpenMatchActionMenu] = useState(null);
+    const [openCockpitActionMenu, setOpenCockpitActionMenu] = useState(null);
 
     const [gameBoardGameId, setGameBoardGameId] = useState(null);
     const [rightTab, setRightTab] = useState('events');
@@ -468,6 +471,12 @@ export default function GamesIndex({ games, matches, cocks, cocks2, filters = {}
         fight_number: '',
         schedule_time: '',
         status: 'pending',
+        cock1_id: '',
+        cock2_id: '',
+        cock1_color: '',
+        cock2_color: '',
+        min_bet_amount: '',
+        max_bet_amount: '',
     });
 
     const selectedMatchGame = useMemo(() => {
@@ -528,7 +537,18 @@ export default function GamesIndex({ games, matches, cocks, cocks2, filters = {}
 
     const openCreateMatch = () => {
         setEditingMatchId(null);
-        setMatchForm({ event_id: '', fight_number: '', schedule_time: '', status: 'pending' });
+        setMatchForm({
+            event_id: '',
+            fight_number: '',
+            schedule_time: '',
+            status: 'pending',
+            cock1_id: '',
+            cock2_id: '',
+            cock1_color: '',
+            cock2_color: '',
+            min_bet_amount: '',
+            max_bet_amount: '',
+        });
         setOffcanvasMatchSearch('');
         setOpenMatchActionMenu(null);
         setOffcanvas({ open: true, type: 'match' });
@@ -547,6 +567,18 @@ export default function GamesIndex({ games, matches, cocks, cocks2, filters = {}
             fight_number: m.fight_number ? String(m.fight_number) : '',
             schedule_time: normalizedScheduleTime,
             status: m.status ?? 'pending',
+            cock1_id: m.cock1_id ? String(m.cock1_id) : '',
+            cock2_id: m.cock2_id ? String(m.cock2_id) : '',
+            cock1_color: m.cock1_color ?? '',
+            cock2_color: m.cock2_color ?? '',
+            min_bet_amount:
+                m.min_bet_amount !== null && m.min_bet_amount !== undefined
+                    ? String(m.min_bet_amount)
+                    : '',
+            max_bet_amount:
+                m.max_bet_amount !== null && m.max_bet_amount !== undefined
+                    ? String(m.max_bet_amount)
+                    : '',
         });
         setOffcanvasMatchSearch('');
         setOpenMatchActionMenu(null);
@@ -558,6 +590,17 @@ export default function GamesIndex({ games, matches, cocks, cocks2, filters = {}
         setOpenGameActionMenu(null);
         setOpenMatchActionMenu(null);
         setOffcanvas({ open: false, type: null });
+    };
+
+    const openCockpitMenu = (e, matchId) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        setOpenCockpitActionMenu((prev) => {
+            if (prev?.id === matchId) return null;
+            const width = 170;
+            const left = Math.max(8, rect.right - width);
+            const top = rect.bottom + 8;
+            return { id: matchId, top, left, width };
+        });
     };
 
     const submitGame = (e) => {
@@ -580,15 +623,51 @@ export default function GamesIndex({ games, matches, cocks, cocks2, filters = {}
         });
     };
 
-    const submitMatch = (e) => {
+    const submitMatch = async (e) => {
         e.preventDefault();
+
+        const errorsToCriticalText = (errs) => {
+            if (!errs) return '';
+            const keys = Object.keys(errs);
+            for (const k of keys) {
+                const v = errs[k];
+                if (Array.isArray(v) && v.length) return String(v[0]);
+                if (typeof v === 'string' && v) return v;
+            }
+            return '';
+        };
+
+        const confirm = await Swal.fire({
+            title: 'Save changes?',
+            text: 'Do you want to continue saving this match?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, Save',
+            cancelButtonText: 'No',
+        });
+
+        if (!confirm.isConfirmed) return;
+
         setBusy(true);
 
         if (!editingMatchId) {
             router.post(route('matches.store'), matchForm, {
                 preserveScroll: true,
                 onFinish: () => setBusy(false),
-                onSuccess: () => setOffcanvas({ open: false, type: null }),
+                onSuccess: () => {
+                    setOffcanvas({ open: false, type: null });
+                    Swal.fire({ title: 'Saved', text: 'Match saved successfully.', icon: 'success' });
+                },
+                onError: (errs) => {
+                    const text =
+                        errorsToCriticalText(errs) ||
+                        'Failed to save match. Please check the fields and try again.';
+                    Swal.fire({
+                        title: 'Critical',
+                        text,
+                        icon: 'error',
+                    });
+                },
             });
             return;
         }
@@ -599,7 +678,20 @@ export default function GamesIndex({ games, matches, cocks, cocks2, filters = {}
             {
                 preserveScroll: true,
                 onFinish: () => setBusy(false),
-                onSuccess: () => setOffcanvas({ open: false, type: null }),
+                onSuccess: () => {
+                    setOffcanvas({ open: false, type: null });
+                    Swal.fire({ title: 'Saved', text: 'Match updated successfully.', icon: 'success' });
+                },
+                onError: (errs) => {
+                    const text =
+                        errorsToCriticalText(errs) ||
+                        'Failed to update match. Please check the fields and try again.';
+                    Swal.fire({
+                        title: 'Critical',
+                        text,
+                        icon: 'error',
+                    });
+                },
             },
         );
     };
@@ -614,7 +706,7 @@ export default function GamesIndex({ games, matches, cocks, cocks2, filters = {}
         router.delete(route('matches.destroy', m.id), { preserveScroll: true });
     };
 
-    const setMatchStatus = (m, status) => {
+    const touchMatch = (m) => {
         if (!canUpdateMatch) return;
         const payload = {
             event_id: m.event_id ? String(m.event_id) : '',
@@ -622,7 +714,46 @@ export default function GamesIndex({ games, matches, cocks, cocks2, filters = {}
             schedule_time: m.schedule_time
                 ? String(m.schedule_time).replace(' ', 'T').replace(/\.\d+Z$/, '').slice(0, 16)
                 : '',
+            status: m.status ?? 'pending',
+            touch: true,
+        };
+        router.post(route('matches.update', m.id), { ...payload, _method: 'put' }, { preserveScroll: true });
+    };
+
+    const prefillWizardForMatchUpdate = (m) => {
+        const resolveCockName = (cockId) => {
+            if (!cockId) return '';
+            const fromRel = m?.cock1?.id === cockId ? m.cock1 : m?.cock2?.id === cockId ? m.cock2 : null;
+            const fromList = cocksData.find((c) => String(c.id) === String(cockId)) ?? null;
+            const fromList2 = cocks2Data.find((c) => String(c.id) === String(cockId)) ?? null;
+            const cock = fromRel ?? fromList ?? fromList2;
+            return cock?.cock_name ?? cock?.code ?? '';
+        };
+
+        setSelectedMatchId(m?.id ?? null);
+        setWizardEventId(m?.event_id ? String(m.event_id) : '');
+
+        setWizardCock1Id(m?.cock1_id ? String(m.cock1_id) : '');
+        setWizardCock1Search(resolveCockName(m?.cock1_id));
+        setWizardCock1Color(m?.cock1_color ?? '');
+
+        setWizardCock2Id(m?.cock2_id ? String(m.cock2_id) : '');
+        setWizardCock2Search(resolveCockName(m?.cock2_id));
+        setWizardCock2Color(m?.cock2_color ?? '');
+
+        setWizardFightNo(m?.fight_number != null ? String(m.fight_number) : '1');
+        setWizardScheduleTime(
+            m?.schedule_time ? String(m.schedule_time).replace(' ', 'T').replace(/\.\d+Z$/, '').slice(0, 16) : '',
+        );
+
+        setWizardStep(1);
+    };
+
+    const setMatchStatus = (m, status) => {
+        if (!canUpdateMatch) return;
+        const payload = {
             status,
+            touch: true,
         };
 
         router.post(route('matches.update', m.id), { ...payload, _method: 'put' }, { preserveScroll: true });
@@ -659,6 +790,18 @@ export default function GamesIndex({ games, matches, cocks, cocks2, filters = {}
             .map((c) => ({ id: String(c.id), name: c.cock_name ?? c.code ?? `Cock #${c.id}` }));
     }, [cocks2Data, wizardCock1Id]);
 
+    const offcanvasCockOptions1 = useMemo(() => {
+        return cocksData
+            .filter((c) => String(c.id) !== String(matchForm.cock2_id))
+            .map((c) => ({ value: String(c.id), label: c.cock_name ?? c.code ?? `Cock #${c.id}` }));
+    }, [cocksData, matchForm.cock2_id]);
+
+    const offcanvasCockOptions2 = useMemo(() => {
+        return cocks2Data
+            .filter((c) => String(c.id) !== String(matchForm.cock1_id))
+            .map((c) => ({ value: String(c.id), label: c.cock_name ?? c.code ?? `Cock #${c.id}` }));
+    }, [cocks2Data, matchForm.cock1_id]);
+
     const selectedCock1 = useMemo(() => {
         if (!wizardCock1Id) return null;
         return cocksData.find((c) => String(c.id) === String(wizardCock1Id)) ?? null;
@@ -685,6 +828,14 @@ export default function GamesIndex({ games, matches, cocks, cocks2, filters = {}
     const cock2ColorOptions = useMemo(() => {
         return cockColorOptions.filter((o) => o.value === '' || String(o.value) !== String(wizardCock1Color));
     }, [cockColorOptions, wizardCock1Color]);
+
+    const offcanvasCock1ColorOptions = useMemo(() => {
+        return cockColorOptions.filter((o) => o.value === '' || String(o.value) !== String(matchForm.cock2_color));
+    }, [cockColorOptions, matchForm.cock2_color]);
+
+    const offcanvasCock2ColorOptions = useMemo(() => {
+        return cockColorOptions.filter((o) => o.value === '' || String(o.value) !== String(matchForm.cock1_color));
+    }, [cockColorOptions, matchForm.cock1_color]);
 
     const oppositeCornerColor = (c) => {
         const v = String(c ?? '').toUpperCase();
@@ -1004,6 +1155,43 @@ export default function GamesIndex({ games, matches, cocks, cocks2, filters = {}
         if (!Number.isFinite(fightNo) || fightNo < 0) return;
 
         setWizardSubmitting(true);
+
+        if (selectedMatchId) {
+            router.post(
+                route('matches.update', selectedMatchId),
+                {
+                    event_id: Number(wizardEventId),
+                    cock1_id: wizardCock1Id ? Number(wizardCock1Id) : null,
+                    cock2_id: wizardCock2Id ? Number(wizardCock2Id) : null,
+                    cock1_color: wizardCock1Color || null,
+                    cock2_color: wizardCock2Color || null,
+                    fight_number: fightNo,
+                    schedule_time: wizardScheduleTime || null,
+                    status: 'stop',
+                    touch: true,
+                    _method: 'put',
+                },
+                {
+                    preserveScroll: true,
+                    onFinish: () => setWizardSubmitting(false),
+                    onSuccess: () => {
+                        setSelectedMatchId(null);
+                        setWizardStep(0);
+                        setWizardEventId('');
+                        setWizardCock1Id('');
+                        setWizardCock1Search('');
+                        setWizardCock1Color('');
+                        setWizardCock2Id('');
+                        setWizardCock2Search('');
+                        setWizardCock2Color('');
+                        setWizardFightNo('1');
+                        setWizardScheduleTime('');
+                    },
+                },
+            );
+            return;
+        }
+
         router.post(
             route('matches.store'),
             {
@@ -1020,6 +1208,7 @@ export default function GamesIndex({ games, matches, cocks, cocks2, filters = {}
                 preserveScroll: true,
                 onFinish: () => setWizardSubmitting(false),
                 onSuccess: () => {
+                    setSelectedMatchId(null);
                     setWizardStep(0);
                     setWizardEventId('');
                     setWizardCock1Id('');
@@ -1135,32 +1324,18 @@ export default function GamesIndex({ games, matches, cocks, cocks2, filters = {}
                                                 }`}
                                             >
                                                 <td className="p-3 align-top">
-                                                    <div className="flex flex-wrap gap-2">
-                                                        <Button
-                                                            type="button"
-                                                            variant="secondary"
-                                                            disabled={!canUpdateMatch}
-                                                            onClick={() => setMatchStatus(m, 'ongoing')}
-                                                        >
-                                                            Play
-                                                        </Button>
-                                                        <Button
-                                                            type="button"
-                                                            variant="secondary"
-                                                            disabled={!canUpdateMatch}
-                                                            onClick={() => setMatchStatus(m, 'done')}
-                                                        >
-                                                            Stop
-                                                        </Button>
-                                                        <Button
-                                                            type="button"
-                                                            variant="outline"
-                                                            disabled={!canUpdateMatch}
-                                                            onClick={() => openEditMatch(m)}
-                                                        >
-                                                            Update
-                                                        </Button>
-                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-[var(--border)] bg-[var(--bg-secondary)] text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)]"
+                                                        onClick={(e) => openCockpitMenu(e, m.id)}
+                                                        aria-label="Actions"
+                                                    >
+                                                        <div className="flex flex-col gap-1">
+                                                            <span className="block h-0.5 w-4 bg-current" />
+                                                            <span className="block h-0.5 w-4 bg-current" />
+                                                            <span className="block h-0.5 w-4 bg-current" />
+                                                        </div>
+                                                    </button>
                                                 </td>
 
                                                 <td className="p-3 align-top">{scheduleLabel}</td>
@@ -1215,6 +1390,76 @@ export default function GamesIndex({ games, matches, cocks, cocks2, filters = {}
                                 </tbody>
                             </table>
                         </div>
+
+                        {openCockpitActionMenu && (
+                            <>
+                                <button
+                                    type="button"
+                                    className="fixed inset-0 z-40 cursor-default"
+                                    onClick={() => setOpenCockpitActionMenu(null)}
+                                    aria-label="Close menu"
+                                />
+                                <div
+                                    className="fixed z-50 origin-top-right overflow-hidden rounded-md border border-[var(--border)] bg-[var(--bg-secondary)] shadow-lg transition duration-150 ease-out"
+                                    style={{
+                                        top: openCockpitActionMenu.top,
+                                        left: openCockpitActionMenu.left,
+                                        width: openCockpitActionMenu.width,
+                                    }}
+                                >
+                                    <button
+                                        type="button"
+                                        className="block w-full px-3 py-2 text-left text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] disabled:opacity-60"
+                                        disabled={!canUpdateMatch}
+                                        onClick={() => {
+                                            const mm = matchesData.find((x) => x.id === openCockpitActionMenu.id);
+                                            setOpenCockpitActionMenu(null);
+                                            if (mm) setMatchStatus(mm, 'play');
+                                        }}
+                                    >
+                                        Play
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="block w-full px-3 py-2 text-left text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] disabled:opacity-60"
+                                        disabled={!canUpdateMatch}
+                                        onClick={() => {
+                                            const mm = matchesData.find((x) => x.id === openCockpitActionMenu.id);
+                                            setOpenCockpitActionMenu(null);
+                                            if (mm) setMatchStatus(mm, 'stop');
+                                        }}
+                                    >
+                                        Stop
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="block w-full px-3 py-2 text-left text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] disabled:opacity-60"
+                                        disabled={!canUpdateMatch}
+                                        onClick={() => {
+                                            const mm = matchesData.find((x) => x.id === openCockpitActionMenu.id);
+                                            setOpenCockpitActionMenu(null);
+                                            if (mm) {
+                                                setMatchStatus(mm, 'stop');
+                                                openEditMatch(mm);
+                                            }
+                                        }}
+                                    >
+                                        Update
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="block w-full px-3 py-2 text-left text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)]"
+                                        onClick={() => {
+                                            const mm = matchesData.find((x) => x.id === openCockpitActionMenu.id);
+                                            setOpenCockpitActionMenu(null);
+                                            if (mm) setMatchStatus(mm, 'active');
+                                        }}
+                                    >
+                                        Betting
+                                    </button>
+                                </div>
+                            </>
+                        )}
                     </Card>
 
                     <Card className="mb-4">
@@ -1659,7 +1904,9 @@ export default function GamesIndex({ games, matches, cocks, cocks2, filters = {}
                                         ? editingGameId
                                             ? 'Edit Game'
                                             : 'Create New Game'
-                                        : 'Create New Match'}
+                                        : editingMatchId
+                                            ? 'Edit Match'
+                                            : 'Create New Match'}
                                 </div>
                                 <Button type="button" variant="secondary" onClick={closeOffcanvas}>
                                     Close
@@ -1953,6 +2200,82 @@ export default function GamesIndex({ games, matches, cocks, cocks2, filters = {}
                                                 </div>
 
                                                 <div>
+                                                    <Label>Cock 1</Label>
+                                                    <Select
+                                                        value={matchForm.cock1_id}
+                                                        onChange={(e) =>
+                                                            setMatchForm((f) => ({
+                                                                ...f,
+                                                                cock1_id: e.target.value,
+                                                            }))
+                                                        }
+                                                        options={[{ value: '', label: 'Select cock' }, ...offcanvasCockOptions1]}
+                                                    />
+                                                    {errors?.cock1_id && (
+                                                        <div className="mt-1 text-sm text-[var(--danger)]">
+                                                            {errors.cock1_id}
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                <div>
+                                                    <Label>Cock 1 Color</Label>
+                                                    <Select
+                                                        value={matchForm.cock1_color}
+                                                        onChange={(e) =>
+                                                            setMatchForm((f) => ({
+                                                                ...f,
+                                                                cock1_color: e.target.value,
+                                                            }))
+                                                        }
+                                                        options={offcanvasCock1ColorOptions}
+                                                    />
+                                                    {errors?.cock1_color && (
+                                                        <div className="mt-1 text-sm text-[var(--danger)]">
+                                                            {errors.cock1_color}
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                <div>
+                                                    <Label>Cock 2</Label>
+                                                    <Select
+                                                        value={matchForm.cock2_id}
+                                                        onChange={(e) =>
+                                                            setMatchForm((f) => ({
+                                                                ...f,
+                                                                cock2_id: e.target.value,
+                                                            }))
+                                                        }
+                                                        options={[{ value: '', label: 'Select cock' }, ...offcanvasCockOptions2]}
+                                                    />
+                                                    {errors?.cock2_id && (
+                                                        <div className="mt-1 text-sm text-[var(--danger)]">
+                                                            {errors.cock2_id}
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                <div>
+                                                    <Label>Cock 2 Color</Label>
+                                                    <Select
+                                                        value={matchForm.cock2_color}
+                                                        onChange={(e) =>
+                                                            setMatchForm((f) => ({
+                                                                ...f,
+                                                                cock2_color: e.target.value,
+                                                            }))
+                                                        }
+                                                        options={offcanvasCock2ColorOptions}
+                                                    />
+                                                    {errors?.cock2_color && (
+                                                        <div className="mt-1 text-sm text-[var(--danger)]">
+                                                            {errors.cock2_color}
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                <div>
                                                     <Label>Status</Label>
                                                     <Select
                                                         value={matchForm.status}
@@ -1967,6 +2290,48 @@ export default function GamesIndex({ games, matches, cocks, cocks2, filters = {}
                                                     {errors?.status && (
                                                         <div className="mt-1 text-sm text-[var(--danger)]">
                                                             {errors.status}
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                <div>
+                                                    <Label>Min Bet Amount</Label>
+                                                    <Input
+                                                        type="number"
+                                                        step="0.01"
+                                                        min="0"
+                                                        value={matchForm.min_bet_amount}
+                                                        onChange={(e) =>
+                                                            setMatchForm((f) => ({
+                                                                ...f,
+                                                                min_bet_amount: e.target.value,
+                                                            }))
+                                                        }
+                                                    />
+                                                    {errors?.min_bet_amount && (
+                                                        <div className="mt-1 text-sm text-[var(--danger)]">
+                                                            {errors.min_bet_amount}
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                <div>
+                                                    <Label>Max Bet Amount</Label>
+                                                    <Input
+                                                        type="number"
+                                                        step="0.01"
+                                                        min="0"
+                                                        value={matchForm.max_bet_amount}
+                                                        onChange={(e) =>
+                                                            setMatchForm((f) => ({
+                                                                ...f,
+                                                                max_bet_amount: e.target.value,
+                                                            }))
+                                                        }
+                                                    />
+                                                    {errors?.max_bet_amount && (
+                                                        <div className="mt-1 text-sm text-[var(--danger)]">
+                                                            {errors.max_bet_amount}
                                                         </div>
                                                     )}
                                                 </div>

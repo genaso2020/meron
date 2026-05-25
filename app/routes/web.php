@@ -8,6 +8,8 @@ use App\Http\Controllers\MatchController;
 use App\Http\Controllers\PlayerController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProfileController;
+use App\Models\Bet;
+use App\Models\GameMatch;
 use App\Http\Controllers\Settings\RoleController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -32,7 +34,84 @@ Route::get('/cashier', function () {
 })->middleware(['auth', 'role:Cashier-Basic,Cashier-Full,Cashier Basic,Cashier Full'])->name('cashier.home');
 
 Route::get('/cashier/ui', function () {
-    return view('landing');
+    $user = Auth::user();
+
+    $address1 = trim((string) ($user?->address_1 ?? ''));
+    $address2 = trim((string) ($user?->address_2 ?? ''));
+    $town = trim((string) ($user?->town ?? ''));
+    $city = trim((string) ($user?->city ?? ''));
+    $townOrCity = $town !== '' ? $town : $city;
+
+    $outlet = trim(implode(' ', array_filter([$address1, $address2, $townOrCity])));
+
+    $activeMatchesQuery = GameMatch::query()
+        ->where('status', 'active');
+
+    // Default first match: topmost record when sorted by schedule_time DESC (nulls last)
+    $activeMatchesQuery
+        ->orderByRaw('schedule_time IS NULL')
+        ->orderByDesc('schedule_time')
+        ->orderByDesc('fight_number')
+        ->orderByDesc('id');
+
+    $activeMatches = $activeMatchesQuery->get([
+            'id',
+            'event_id',
+            'event_name',
+            'event_location',
+            'fight_number',
+            'schedule_time',
+            'status',
+            'min_bet_amount',
+            'max_bet_amount',
+        ]);
+
+    $activeMatchIds = $activeMatches->pluck('id')->all();
+    $betAggByMatch = [];
+    $betAggByMatchSide = [];
+
+    if (!empty($activeMatchIds)) {
+        $rows = Bet::query()
+            ->whereIn('match_id', $activeMatchIds)
+            ->selectRaw('match_id, SUM(no_of_bets) as total_bets, SUM(amount) as total_amount')
+            ->groupBy('match_id')
+            ->get();
+
+        foreach ($rows as $r) {
+            $betAggByMatch[(int) $r->match_id] = [
+                'total_bets' => (int) ($r->total_bets ?? 0),
+                'total_amount' => (float) ($r->total_amount ?? 0),
+            ];
+        }
+
+        $rows2 = Bet::query()
+            ->whereIn('match_id', $activeMatchIds)
+            ->selectRaw('match_id, side, SUM(no_of_bets) as total_bets, SUM(amount) as total_amount')
+            ->groupBy('match_id', 'side')
+            ->get();
+
+        foreach ($rows2 as $r) {
+            $mid = (int) $r->match_id;
+            $side = (string) $r->side;
+            $betAggByMatchSide[$mid] = $betAggByMatchSide[$mid] ?? [];
+            $betAggByMatchSide[$mid][$side] = [
+                'total_bets' => (int) ($r->total_bets ?? 0),
+                'total_amount' => (float) ($r->total_amount ?? 0),
+            ];
+        }
+    }
+
+    $hasActiveMatch = $activeMatches->isNotEmpty();
+
+    return view('landing', [
+        'cashierTellerNo' => $user?->id,
+        'cashierOutlet' => $outlet,
+        'cashierTellerName' => $user?->name,
+        'cashierHasActiveMatch' => $hasActiveMatch,
+        'cashierActiveMatches' => $activeMatches,
+        'cashierBetAggByMatch' => $betAggByMatch,
+        'cashierBetAggByMatchSide' => $betAggByMatchSide,
+    ]);
 })->middleware(['auth', 'role:Cashier-Basic,Cashier-Full,Cashier Basic,Cashier Full'])->name('cashier.ui');
 
 Route::get('/lock', function (Request $request) {

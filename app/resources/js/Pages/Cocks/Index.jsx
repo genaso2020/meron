@@ -38,10 +38,22 @@ export default function CocksIndex({ cocks, players = [], fightingStyles = [], f
     const [editingId, setEditingId] = useState(null);
     const [busy, setBusy] = useState(false);
     const [photoPreviewUrl, setPhotoPreviewUrl] = useState(null);
+    const [frontPhotoPreviewUrl, setFrontPhotoPreviewUrl] = useState(null);
+    const [leftPhotoPreviewUrl, setLeftPhotoPreviewUrl] = useState(null);
+    const [rightPhotoPreviewUrl, setRightPhotoPreviewUrl] = useState(null);
+    const [actionPhotoPreviewUrl, setActionPhotoPreviewUrl] = useState(null);
 
     const [form, setForm] = useState({
         photo: null,
         photo_path: null,
+        front_photo: null,
+        front_photo_path: null,
+        left_photo: null,
+        left_photo_path: null,
+        right_photo: null,
+        right_photo_path: null,
+        action_photo: null,
+        action_photo_path: null,
         player_id: '',
         player_search: '',
         code: '',
@@ -111,6 +123,14 @@ export default function CocksIndex({ cocks, players = [], fightingStyles = [], f
         setForm({
             photo: null,
             photo_path: null,
+            front_photo: null,
+            front_photo_path: null,
+            left_photo: null,
+            left_photo_path: null,
+            right_photo: null,
+            right_photo_path: null,
+            action_photo: null,
+            action_photo_path: null,
             player_id: '',
             player_search: '',
             code: '',
@@ -137,6 +157,10 @@ export default function CocksIndex({ cocks, players = [], fightingStyles = [], f
     useEffect(() => {
         if (!isOffcanvasOpen) {
             setPhotoPreviewUrl(null);
+            setFrontPhotoPreviewUrl(null);
+            setLeftPhotoPreviewUrl(null);
+            setRightPhotoPreviewUrl(null);
+            setActionPhotoPreviewUrl(null);
             return;
         }
 
@@ -148,6 +172,46 @@ export default function CocksIndex({ cocks, players = [], fightingStyles = [], f
 
         setPhotoPreviewUrl(null);
     }, [form.photo, isOffcanvasOpen]);
+
+    useEffect(() => {
+        if (!isOffcanvasOpen) return;
+        if (form.front_photo instanceof File) {
+            const url = URL.createObjectURL(form.front_photo);
+            setFrontPhotoPreviewUrl(url);
+            return () => URL.revokeObjectURL(url);
+        }
+        setFrontPhotoPreviewUrl(null);
+    }, [form.front_photo, isOffcanvasOpen]);
+
+    useEffect(() => {
+        if (!isOffcanvasOpen) return;
+        if (form.left_photo instanceof File) {
+            const url = URL.createObjectURL(form.left_photo);
+            setLeftPhotoPreviewUrl(url);
+            return () => URL.revokeObjectURL(url);
+        }
+        setLeftPhotoPreviewUrl(null);
+    }, [form.left_photo, isOffcanvasOpen]);
+
+    useEffect(() => {
+        if (!isOffcanvasOpen) return;
+        if (form.right_photo instanceof File) {
+            const url = URL.createObjectURL(form.right_photo);
+            setRightPhotoPreviewUrl(url);
+            return () => URL.revokeObjectURL(url);
+        }
+        setRightPhotoPreviewUrl(null);
+    }, [form.right_photo, isOffcanvasOpen]);
+
+    useEffect(() => {
+        if (!isOffcanvasOpen) return;
+        if (form.action_photo instanceof File) {
+            const url = URL.createObjectURL(form.action_photo);
+            setActionPhotoPreviewUrl(url);
+            return () => URL.revokeObjectURL(url);
+        }
+        setActionPhotoPreviewUrl(null);
+    }, [form.action_photo, isOffcanvasOpen]);
 
     const getStoredPhotoUrl = (photoPath) => {
         if (!photoPath) return null;
@@ -168,6 +232,14 @@ export default function CocksIndex({ cocks, players = [], fightingStyles = [], f
         setForm({
             photo: null,
             photo_path: c.photo_path || null,
+            front_photo: null,
+            front_photo_path: c.front_photo_path || null,
+            left_photo: null,
+            left_photo_path: c.left_photo_path || null,
+            right_photo: null,
+            right_photo_path: c.right_photo_path || null,
+            action_photo: null,
+            action_photo_path: c.action_photo_path || null,
             player_id: c.player_id ? String(c.player_id) : '',
             player_search: getPlayerName(c.player) || '',
             code: c.code || '',
@@ -433,47 +505,100 @@ export default function CocksIndex({ cocks, players = [], fightingStyles = [], f
 
                             <form onSubmit={submit} className="flex-1 overflow-y-auto p-4">
                                 <div className="space-y-4">
-                                    <div>
-                                        <Label>Picture</Label>
-                                        <div className="mb-3 flex items-center gap-4">
-                                            <div className="h-24 w-24 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-tertiary)]">
-                                                {photoPreviewUrl || getStoredPhotoUrl(form.photo_path) ? (
-                                                    <img
-                                                        src={photoPreviewUrl ?? getStoredPhotoUrl(form.photo_path)}
-                                                        alt="Cock preview"
-                                                        className="h-full w-full object-cover"
-                                                    />
-                                                ) : (
-                                                    <div className="flex h-full w-full items-center justify-center text-xs text-[var(--text-muted)]">
-                                                        No Image
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            <div className="flex-1">
-                                                <Input
-                                                    type="file"
-                                                    accept="image/*"
-                                                    onChange={(e) =>
-                                                        setForm((f) => ({
-                                                            ...f,
-                                                            photo: e.target.files?.[0] ?? null,
-                                                        }))
-                                                    }
-                                                />
-                                                <div className="mt-1 text-xs text-[var(--text-muted)]">
-                                                    JPG/PNG/WEBP up to 2MB
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {errors?.photo && (
-                                            <div className="mt-1 text-sm text-[var(--danger)]">
-                                                {errors.photo}
-                                            </div>
-                                        )}
-                                    </div>
-
                                     <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                                        <div className="md:col-span-3">
+                                            <Label>Pictures</Label>
+                                            <div className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
+                                                {[
+                                                    {
+                                                        key: 'front',
+                                                        label: 'Front Pic',
+                                                        preview: frontPhotoPreviewUrl,
+                                                        stored: getStoredPhotoUrl(form.front_photo_path),
+                                                        error: errors?.front_photo,
+                                                        onChange: (file) =>
+                                                            setForm((f) => ({ ...f, front_photo: file ?? null })),
+                                                    },
+                                                    {
+                                                        key: 'left',
+                                                        label: 'Left Side Pic',
+                                                        preview: leftPhotoPreviewUrl,
+                                                        stored: getStoredPhotoUrl(form.left_photo_path),
+                                                        error: errors?.left_photo,
+                                                        onChange: (file) =>
+                                                            setForm((f) => ({ ...f, left_photo: file ?? null })),
+                                                    },
+                                                    {
+                                                        key: 'right',
+                                                        label: 'Right Side Pic',
+                                                        preview: rightPhotoPreviewUrl,
+                                                        stored: getStoredPhotoUrl(form.right_photo_path),
+                                                        error: errors?.right_photo,
+                                                        onChange: (file) =>
+                                                            setForm((f) => ({ ...f, right_photo: file ?? null })),
+                                                    },
+                                                    {
+                                                        key: 'normal',
+                                                        label: 'Normal Pic',
+                                                        preview: photoPreviewUrl,
+                                                        stored: getStoredPhotoUrl(form.photo_path),
+                                                        error: errors?.photo,
+                                                        onChange: (file) => setForm((f) => ({ ...f, photo: file ?? null })),
+                                                    },
+                                                    {
+                                                        key: 'action',
+                                                        label: 'Action Pic',
+                                                        preview: actionPhotoPreviewUrl,
+                                                        stored: getStoredPhotoUrl(form.action_photo_path),
+                                                        error: errors?.action_photo,
+                                                        onChange: (file) =>
+                                                            setForm((f) => ({ ...f, action_photo: file ?? null })),
+                                                    },
+                                                ].map((slot) => (
+                                                    <div key={slot.key}>
+                                                        <label className="block cursor-pointer">
+                                                            <div className="h-20 w-full overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg-tertiary)]">
+                                                                {slot.preview || slot.stored ? (
+                                                                    <img
+                                                                        src={slot.preview ?? slot.stored}
+                                                                        alt={slot.label}
+                                                                        className="h-full w-full object-cover"
+                                                                    />
+                                                                ) : (
+                                                                    <div className="flex h-full w-full flex-col items-center justify-center gap-1 px-2 text-center">
+                                                                        <img
+                                                                            src={`data:image/svg+xml;utf8,${encodeURIComponent(
+                                                                                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 80">
+  <rect width="120" height="80" rx="12" ry="12" fill="#E5E7EB"/>
+  <path d="M60 18c-10 0-18 6-18 14h10c0-4 4-7 8-7s8 3 8 7c0 4-3 6-7 8-5 2-9 5-9 12v3h10v-2c0-3 1-4 6-6 6-2 10-6 10-15 0-8-8-14-18-14z" fill="#6B7280"/>
+  <circle cx="60" cy="62" r="5" fill="#6B7280"/>
+</svg>`,
+                                                                            )}`}
+                                                                            alt="?"
+                                                                            className="h-10 w-10 opacity-80"
+                                                                        />
+                                                                        <div className="text-[10px] font-semibold text-[var(--text-muted)]">
+                                                                            {slot.label}
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            <input
+                                                                type="file"
+                                                                accept="image/*"
+                                                                className="hidden"
+                                                                onChange={(e) => slot.onChange(e.target.files?.[0] ?? null)}
+                                                            />
+                                                        </label>
+                                                        {slot.error && (
+                                                            <div className="mt-1 text-xs text-[var(--danger)]">{slot.error}</div>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <div className="mt-2 text-xs text-[var(--text-muted)]">JPG/PNG/WEBP up to 2MB</div>
+                                        </div>
+
                                         <div>
                                             <Label>Player</Label>
                                             <Input

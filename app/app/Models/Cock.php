@@ -29,6 +29,10 @@ class Cock extends Model
         'draws',
         'losses',
         'photo_path',
+        'front_photo_path',
+        'left_photo_path',
+        'right_photo_path',
+        'action_photo_path',
         'status',
     ];
 

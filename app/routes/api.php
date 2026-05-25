@@ -1,7 +1,11 @@
 <?php
 
 use App\Http\Controllers\Api\ApiAuthController;
+use App\Http\Controllers\Api\ActiveMatchController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('matches/active', [ActiveMatchController::class, 'show']);
+Route::get('matches/active/stream', [ActiveMatchController::class, 'stream']);
 
 Route::prefix('v1')->group(function () {
     Route::prefix('auth')->group(function () {

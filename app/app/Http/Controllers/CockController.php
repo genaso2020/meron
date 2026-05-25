@@ -62,6 +62,10 @@ class CockController extends Controller
                 'draws',
                 'losses',
                 'photo_path',
+                'front_photo_path',
+                'left_photo_path',
+                'right_photo_path',
+                'action_photo_path',
                 'status',
             ])
             ->paginate($perPage)
@@ -109,6 +113,10 @@ class CockController extends Controller
             'draws' => ['nullable', 'integer', 'min:0'],
             'losses' => ['nullable', 'integer', 'min:0'],
             'photo' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'front_photo' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'left_photo' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'right_photo' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'action_photo' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'status' => ['required', Rule::in(['active', 'in-active'])],
         ]);
 
@@ -127,6 +135,26 @@ class CockController extends Controller
         $photoPath = null;
         if ($request->hasFile('photo')) {
             $photoPath = $request->file('photo')->store('cock-photos', 'public');
+        }
+
+        $frontPhotoPath = null;
+        if ($request->hasFile('front_photo')) {
+            $frontPhotoPath = $request->file('front_photo')->store('cock-photos', 'public');
+        }
+
+        $leftPhotoPath = null;
+        if ($request->hasFile('left_photo')) {
+            $leftPhotoPath = $request->file('left_photo')->store('cock-photos', 'public');
+        }
+
+        $rightPhotoPath = null;
+        if ($request->hasFile('right_photo')) {
+            $rightPhotoPath = $request->file('right_photo')->store('cock-photos', 'public');
+        }
+
+        $actionPhotoPath = null;
+        if ($request->hasFile('action_photo')) {
+            $actionPhotoPath = $request->file('action_photo')->store('cock-photos', 'public');
         }
 
         Cock::query()->create([
@@ -148,6 +176,10 @@ class CockController extends Controller
             'draws' => $validated['draws'] ?? 0,
             'losses' => $validated['losses'] ?? 0,
             'photo_path' => $photoPath,
+            'front_photo_path' => $frontPhotoPath,
+            'left_photo_path' => $leftPhotoPath,
+            'right_photo_path' => $rightPhotoPath,
+            'action_photo_path' => $actionPhotoPath,
             'status' => $validated['status'],
         ]);
 
@@ -175,6 +207,10 @@ class CockController extends Controller
             'draws' => ['nullable', 'integer', 'min:0'],
             'losses' => ['nullable', 'integer', 'min:0'],
             'photo' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'front_photo' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'left_photo' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'right_photo' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'action_photo' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'status' => ['required', Rule::in(['active', 'in-active'])],
         ]);
 
@@ -222,6 +258,22 @@ class CockController extends Controller
 
         if ($request->hasFile('photo')) {
             $update['photo_path'] = $request->file('photo')->store('cock-photos', 'public');
+        }
+
+        if ($request->hasFile('front_photo')) {
+            $update['front_photo_path'] = $request->file('front_photo')->store('cock-photos', 'public');
+        }
+
+        if ($request->hasFile('left_photo')) {
+            $update['left_photo_path'] = $request->file('left_photo')->store('cock-photos', 'public');
+        }
+
+        if ($request->hasFile('right_photo')) {
+            $update['right_photo_path'] = $request->file('right_photo')->store('cock-photos', 'public');
+        }
+
+        if ($request->hasFile('action_photo')) {
+            $update['action_photo_path'] = $request->file('action_photo')->store('cock-photos', 'public');
         }
 
         $cock->update($update);
