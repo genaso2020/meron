@@ -13,6 +13,13 @@ export default function App() {
   const [limits, setLimits] = useState(null);
   const [odds, setOdds] = useState(null);
 
+  async function refreshData() {
+    const [f, l, o] = await Promise.all([api.getCurrentFight(), api.getLimits(), api.getOdds()]);
+    setFight(f);
+    setLimits(l);
+    setOdds(o);
+  }
+
   useEffect(() => {
     function onLogout() {
       setSession(null);
@@ -42,12 +49,7 @@ export default function App() {
     if (!session) return;
     let mounted = true;
 
-    Promise.all([api.getCurrentFight(), api.getLimits(), api.getOdds()]).then(([f, l, o]) => {
-      if (!mounted) return;
-      setFight(f);
-      setLimits(l);
-      setOdds(o);
-    });
+    refreshData().catch(() => {});
 
     const stop = api.subscribeToFightUpdates((f) => {
       if (!mounted) return;
@@ -71,6 +73,7 @@ export default function App() {
       fight={fight}
       limits={limits}
       odds={odds}
+      onRefresh={refreshData}
     />
   );
 }

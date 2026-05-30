@@ -5,16 +5,32 @@ import AmountPad from './bet/AmountPad.jsx';
 import ActionBar from './bet/ActionBar.jsx';
 import Footer from './footer/Footer.jsx';
 import LockModal from './lock/LockModal.jsx';
+import ChangeFightModal from './fight/ChangeFightModal.jsx';
+import ResultsOffcanvas from './results/ResultsOffcanvas.jsx';
+import ChangeModal from './payment/ChangeModal.jsx';
+import TransactionsOffcanvas from './transactions/TransactionsOffcanvas.jsx';
 
 const SIDES = ['MERON', 'DRAW', 'WALA'];
 
-export default function TerminalLayout({ api, session, fight, limits, odds }) {
-  const [side, setSide] = useState('MERON');
+export default function TerminalLayout({ api, session, fight, limits, odds, onRefresh }) {
+  const [side, setSide] = useState(null);
+  const [enterVariant, setEnterVariant] = useState('normal');
   const [amountText, setAmountText] = useState('');
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState(null);
   const [lastTicket, setLastTicket] = useState(null);
   const [locked, setLocked] = useState(false);
+  const [changeFightOpen, setChangeFightOpen] = useState(false);
+  const [resultsOpen, setResultsOpen] = useState(false);
+  const [resultsMounted, setResultsMounted] = useState(false);
+  const [paymentMode, setPaymentMode] = useState(false);
+  const [dueAmount, setDueAmount] = useState(0);
+  const [changeOpen, setChangeOpen] = useState(false);
+  const [changeAmount, setChangeAmount] = useState(0);
+  const [paidAmount, setPaidAmount] = useState(0);
+  const [transactions, setTransactions] = useState([]);
+  const [txOpen, setTxOpen] = useState(false);
+  const [txMounted, setTxMounted] = useState(false);
 
   const amount = useMemo(() => {
     if (!amountText) return 0;
@@ -28,13 +44,13 @@ export default function TerminalLayout({ api, session, fight, limits, odds }) {
   }
 
   useEffect(() => {
-    if (!locked) return;
+    if (!locked && !resultsMounted && !changeOpen && !txMounted) return;
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => {
       document.body.style.overflow = prevOverflow;
     };
-  }, [locked]);
+  }, [locked, resultsMounted, changeOpen, txMounted]);
 
   function clearAmount() {
     setAmountText('');
@@ -59,7 +75,50 @@ export default function TerminalLayout({ api, session, fight, limits, odds }) {
     setAmountText((t) => (t ? `${t}0000` : '0'));
   }
 
+  async function clearAndRefresh() {
+    try {
+      setBusy(true);
+      setAmountText('');
+      setLastTicket(null);
+      setSide(null);
+      setEnterVariant('normal');
+      setPaymentMode(false);
+      setDueAmount(0);
+      setChangeOpen(false);
+      setChangeAmount(0);
+      setPaidAmount(0);
+      await onRefresh?.();
+      showToast('Refreshed', 'success');
+    } catch (e) {
+      showToast(e?.message ?? 'Refresh failed', 'error');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function handleSideChange(nextSide) {
+    setSide(nextSide);
+    setEnterVariant(nextSide);
+  }
+
   async function placeBet() {
+    if (paymentMode) {
+      const paid = amount;
+      if (!paid || paid <= 0) {
+        showToast('Enter amount paid', 'error');
+        return;
+      }
+      if (paid < dueAmount) {
+        showToast('Insufficient payment', 'error');
+        return;
+      }
+
+      setChangeAmount(paid - dueAmount);
+      setPaidAmount(paid);
+      setChangeOpen(true);
+      return;
+    }
+
     if (!fight) return;
     if (!side) return;
     if (!amount || amount <= 0) {
@@ -87,7 +146,9 @@ export default function TerminalLayout({ api, session, fight, limits, odds }) {
         amount
       });
       setLastTicket(ticket);
-      clearAmount();
+      setDueAmount(amount);
+      setPaymentMode(true);
+      setAmountText('');
       showToast(`Ticket ${ticket.ticketId} saved`, 'success');
     } catch (e) {
       showToast(e?.message ?? 'Failed to place bet', 'error');
@@ -152,10 +213,24 @@ export default function TerminalLayout({ api, session, fight, limits, odds }) {
 
   return (
     <div className="app-shell">
-      <Header fight={fight} limits={limits} amount={amount} />
+      <Header
+        fight={fight}
+        limits={limits}
+        amount={amount}
+        dueAmount={paymentMode ? dueAmount : 0}
+        paymentMode={paymentMode}
+        onOpenResults={() => {
+          setResultsMounted(true);
+          setResultsOpen(true);
+        }}
+        onOpenTransactions={() => {
+          setTxMounted(true);
+          setTxOpen(true);
+        }}
+      />
 
       <div className="terminal-main">
-        <BetSideCards side={side} onSideChange={setSide} odds={odds} />
+        <BetSideCards side={side} onSideChange={handleSideChange} odds={odds} />
 
         <div className="amount-section">
           <div className="preset-row">
@@ -177,6 +252,7 @@ export default function TerminalLayout({ api, session, fight, limits, odds }) {
             onDigit={appendDigit}
             onDoubleZero={append00}
             onQuadZero={append0000}
+            enterVariant={enterVariant}
             onBackspace={backspace}
             onClear={clearAmount}
             onEnter={placeBet}
@@ -187,25 +263,12 @@ export default function TerminalLayout({ api, session, fight, limits, odds }) {
             onWinningCall={winningCall}
             onRefund={refundTicket}
             onLock={() => setLocked(true)}
+            onChangeFight={() => setChangeFightOpen(true)}
             onSod={sod}
             onEod={eod}
+            onClearRefresh={clearAndRefresh}
           />
 
-          {lastTicket ? (
-            <div className="ticket-card">
-              <div className="ticket-title">Last Ticket</div>
-              <div className="ticket-grid">
-                <div className="ticket-k">Ticket</div>
-                <div className="ticket-v">{lastTicket.ticketId}</div>
-                <div className="ticket-k">Fight</div>
-                <div className="ticket-v">{lastTicket.fightNo}</div>
-                <div className="ticket-k">Side</div>
-                <div className="ticket-v">{lastTicket.side}</div>
-                <div className="ticket-k">Amount</div>
-                <div className="ticket-v">₱{lastTicket.amount.toLocaleString()}</div>
-              </div>
-            </div>
-          ) : null}
         </div>
       </div>
 
@@ -226,6 +289,63 @@ export default function TerminalLayout({ api, session, fight, limits, odds }) {
             setLocked(false);
             api.logout?.();
             window.dispatchEvent(new CustomEvent('meron:logout'));
+          }}
+        />
+      ) : null}
+
+      {changeFightOpen ? (
+        <ChangeFightModal
+          fight={fight}
+          api={api}
+          onClose={() => setChangeFightOpen(false)}
+          onChanged={(n) => showToast(`Fight No changed to ${n}`, 'success')}
+        />
+      ) : null}
+
+      {resultsMounted ? (
+        <ResultsOffcanvas
+          api={api}
+          open={resultsOpen}
+          onRequestClose={() => setResultsOpen(false)}
+          onClosed={() => setResultsMounted(false)}
+        />
+      ) : null}
+
+      {txMounted ? (
+        <TransactionsOffcanvas
+          open={txOpen}
+          onRequestClose={() => setTxOpen(false)}
+          onClosed={() => setTxMounted(false)}
+          items={transactions}
+        />
+      ) : null}
+
+      {changeOpen ? (
+        <ChangeModal
+          changeAmount={changeAmount}
+          onOk={() => {
+            if (lastTicket) {
+              const entry = {
+                id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+                ticketId: lastTicket.ticketId,
+                transType: 'Bet',
+                fightNo: lastTicket.fightNo,
+                side: lastTicket.side,
+                amount: dueAmount,
+                paidAmount,
+                changeAmount,
+                paymentType: 'Cash'
+              };
+              setTransactions((prev) => [entry, ...(Array.isArray(prev) ? prev : [])].slice(0, 5));
+            }
+            setChangeOpen(false);
+            setChangeAmount(0);
+            setPaidAmount(0);
+            setPaymentMode(false);
+            setDueAmount(0);
+            setAmountText('');
+            setSide(null);
+            setEnterVariant('normal');
           }}
         />
       ) : null}

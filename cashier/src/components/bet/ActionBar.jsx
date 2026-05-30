@@ -1,4 +1,13 @@
-export default function ActionBar({ disabled, onWinningCall, onRefund, onLock, onSod, onEod }) {
+export default function ActionBar({
+  disabled,
+  onWinningCall,
+  onRefund,
+  onLock,
+  onChangeFight,
+  onSod,
+  onEod,
+  onClearRefresh
+}) {
   return (
     <div className="action-row">
       <button className="action action-win" disabled={disabled} onClick={onWinningCall}>
@@ -10,11 +19,17 @@ export default function ActionBar({ disabled, onWinningCall, onRefund, onLock, o
       <button className="action action-lock" disabled={disabled} onClick={onLock}>
         LOCK
       </button>
+      <button className="action action-change" disabled={disabled} onClick={onChangeFight}>
+        CHANGE FIGHT NO
+      </button>
       <button className="action action-sod" disabled={disabled} onClick={onSod}>
         SOD
       </button>
       <button className="action action-eod" disabled={disabled} onClick={onEod}>
         EOD
+      </button>
+      <button className="action action-clear" disabled={disabled} onClick={onClearRefresh}>
+        CLEAR
       </button>
     </div>
   );
