@@ -12,6 +12,7 @@ export default function AmountPad({
   onDigit,
   onDoubleZero,
   onQuadZero,
+  enterVariant,
   onBackspace,
   onClear,
   onEnter
@@ -33,7 +34,7 @@ export default function AmountPad({
         <Key disabled={disabled} onClick={() => onDigit('1')}>1</Key>
         <Key disabled={disabled} onClick={() => onDigit('2')}>2</Key>
         <Key disabled={disabled} onClick={() => onDigit('3')}>3</Key>
-        <Key className="key-enter" disabled={disabled} onClick={onEnter}>ENTER</Key>
+        <Key className={`key-enter key-enter-${enterVariant || 'normal'}`} disabled={disabled} onClick={onEnter}>ENTER</Key>
 
         <Key disabled={disabled} onClick={() => onDigit('0')}>0</Key>
         <Key disabled={disabled} onClick={onDoubleZero}>00</Key>
