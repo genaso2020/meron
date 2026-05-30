@@ -12,17 +12,17 @@ export default function Header({ fight, limits, amount, dueAmount, paymentMode, 
             ▶
           </button>
           <div className="limit-value">{limits ? limits.min.toLocaleString() : '--'}</div>
-          <div className="limit-label">Minimum</div>
+          <div className="limit-label">Minimum Amount</div>
         </div>
         <div className="limit right">
           <button className="results-toggle" type="button" onClick={onOpenResults} aria-label="Open results">
             ◀
           </button>
           <div className="limit-value max">{limits ? limits.max.toLocaleString() : '--'}</div>
-          <div className="limit-label">Maximum</div>
+          <div className="limit-label">Maximum Amount</div>
         </div>
       </div>
-
+      
       <div className="fight-card">
         <div className="fight-datetime">{fight?.datetimeLabel ?? '--'}</div>
         <div className="fight-title">{fight?.title ?? 'Loading...'}</div>
