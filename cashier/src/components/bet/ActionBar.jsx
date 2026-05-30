@@ -17,7 +17,7 @@ export default function ActionBar({
         REFUND TICKET
       </button>
       <button className="action action-lock" disabled={disabled} onClick={onLock}>
-        LOCK
+        LOCK SCREEN
       </button>
       <button className="action action-change" disabled={disabled} onClick={onChangeFight}>
         CHANGE FIGHT NO
