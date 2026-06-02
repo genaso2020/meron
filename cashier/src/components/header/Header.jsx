@@ -1,8 +1,7 @@
-export default function Header({ fight, limits, amount, dueAmount, paymentMode, onOpenResults, onOpenTransactions }) {
+export default function Header({ fight, limits, amount, onOpenResults, onOpenTransactions }) {
   return (
     <div className="header">
       <div className="amount-display">
-        <div className={`amount-top ${paymentMode ? '' : 'is-hidden'}`}>{dueAmount ? dueAmount.toLocaleString() : 0}</div>
         <div className="amount-big">{amount ? amount.toLocaleString() : 0}</div>
       </div>
 

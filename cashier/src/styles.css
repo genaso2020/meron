@@ -49,25 +49,7 @@ button { font-family: inherit; }
   background: rgba(255,255,255,0.04);
   border: 1px solid var(--border);
   border-radius: 16px;
-  padding: 3px 18px;
-  display: grid;
-  grid-template-rows: 1fr 1fr;
-  align-items: center;
-}
-
-.amount-top {
-  font-size: clamp(18px, 3.8vw, 26px);
-  font-weight: 900;
-  letter-spacing: 0.8px;
-  color: rgba(255,255,255,0.78);
-  text-align: right;
-  margin: 0;
-  display: grid;
-  align-items: center;
-}
-
-.amount-top.is-hidden {
-  visibility: hidden;
+  padding: 12px 18px;
 }
 
 .amount-big {
@@ -168,11 +150,11 @@ button { font-family: inherit; }
 
 .side-meron { background: linear-gradient(180deg, rgba(255,72,72,0.9), rgba(255,72,72,0.38)); }
 .side-draw  { background: linear-gradient(180deg, rgba(36,197,92,0.9), rgba(36,197,92,0.38)); }
-.side-wala  { background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.62)); }
+.side-wala  { background: linear-gradient(180deg, rgba(80,140,255,0.9), rgba(80,140,255,0.35)); }
 .side-wala,
 .side-wala .side-label,
 .side-wala .side-odds {
-  color: rgba(0,0,0,0.92);
+  color: rgba(255,255,255,0.92);
 }
 
 .side-label { font-size: 30px; font-weight: 1000; text-align: center; }
@@ -187,7 +169,7 @@ button { font-family: inherit; }
 
 .preset-row {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(7, 1fr);
   gap: 10px;
 }
 
@@ -269,13 +251,13 @@ button { font-family: inherit; }
 }
 
 .key-enter-WALA {
-  background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.62));
-  color: rgba(0,0,0,0.92);
+  background: linear-gradient(180deg, rgba(80,140,255,0.9), rgba(80,140,255,0.35));
+  color: rgba(255,255,255,0.92);
 }
 
 .action-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 10px;
   align-items: stretch;
 }
@@ -783,6 +765,10 @@ button:disabled {
   padding: 16px;
 }
 
+.modal-overlay-opaque {
+  background: rgba(0, 0, 0, 1);
+}
+
 .modal-card {
   width: min(980px, 100%);
   border: 1px solid var(--border);
@@ -851,6 +837,78 @@ button:disabled {
   color: #ffd3d3;
   border-radius: 12px;
   padding: 10px 12px;
+  font-weight: 900;
+}
+
+.modal-welcome {
+  display: grid;
+  gap: 10px;
+  padding: 12px 0;
+  text-align: center;
+}
+
+.modal-welcome-strong {
+  font-size: clamp(20px, 4.2vw, 30px);
+  font-weight: 1000;
+}
+
+.modal-welcome-sub {
+  font-weight: 900;
+  color: rgba(255,255,255,0.78);
+}
+
+.claim-scan-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.claim-actions {
+  grid-template-columns: 1fr 1fr;
+}
+
+.claim-details {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(0,0,0,0.22);
+  padding: 12px;
+}
+
+.claim-grid {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 10px 12px;
+  align-items: center;
+}
+
+.claim-k {
+  font-weight: 1000;
+  color: rgba(255,255,255,0.72);
+  text-transform: none;
+}
+
+.claim-v {
+  font-weight: 900;
+  color: rgba(255,255,255,0.92);
+  word-break: break-word;
+}
+
+.claim-h3 {
+  font-size: 22px;
+}
+
+.claim-h1 {
+  font-size: 34px;
+}
+
+.claim-strong {
+  font-weight: 1000;
+}
+
+.claim-note {
+  margin-top: 10px;
+  text-align: center;
+  color: rgba(255,255,255,0.7);
   font-weight: 900;
 }
 
@@ -936,8 +994,6 @@ button:disabled {
     grid-row: auto;
     grid-column: span 3;
   }
-
-  .action-row { grid-template-columns: 1fr; }
 
   .ticket-grid { grid-template-columns: 100px 1fr; }
 

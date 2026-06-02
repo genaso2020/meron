@@ -13,7 +13,7 @@ function parseCockInfo(value) {
   };
 }
 
-export default function ResultsOffcanvas({ api, open, onRequestClose, onClosed }) {
+export default function ResultsOffcanvas({ api, open, onRequestClose, onClosed, side = 'left' }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   const [items, setItems] = useState([]);
@@ -69,7 +69,7 @@ export default function ResultsOffcanvas({ api, open, onRequestClose, onClosed }
       onMouseDown={requestClose}
     >
       <div
-        className={`offcanvas-panel ${open && !closing ? 'is-open' : ''} ${closing ? 'is-closing' : ''}`}
+        className={`offcanvas-panel ${side === 'right' ? 'right' : ''} ${open && !closing ? 'is-open' : ''} ${closing ? 'is-closing' : ''}`}
         ref={panelRef}
         tabIndex={-1}
         onMouseDown={(e) => e.stopPropagation()}
