@@ -34,14 +34,38 @@ function formatScheduleTime(d) {
 export function createMockServer() {
   let fightNo = 5;
   let subscribers = new Set();
+  let placedTickets = [];
+  let claimedCodes = new Set();
+  let eodRows = [];
 
   const users = [
     {
       id: 1,
       email: 'cashier@demo.local',
       password: '1234',
+      role: 'cashier',
       tellerNo: 4,
       tellerName: 'Cashier Basic User',
+      outlet: 'Outlet/Branch'
+    },
+    {
+      id: 2,
+      email: 'manager@demo.local',
+      password: '1234',
+      pin: '1234',
+      role: 'manager',
+      tellerNo: 1,
+      tellerName: 'Manager User',
+      outlet: 'Outlet/Branch'
+    },
+    {
+      id: 3,
+      email: 'supervisor@demo.local',
+      password: '1234',
+      pin: '1234',
+      role: 'supervisor',
+      tellerNo: 2,
+      tellerName: 'Supervisor User',
       outlet: 'Outlet/Branch'
     }
   ];
@@ -95,13 +119,17 @@ export function createMockServer() {
     {
       fightNo: 5,
       scheduleTime: formatScheduleTime(new Date()),
+      eventName: 'Derby Event',
+      eventLocation: 'Outlet/Branch',
       cock1Name: 'Cock A',
       cock2Name: 'Cock B',
-      status: 'SCHEDULED'
+      status: 'ACTIVE'
     },
     {
       fightNo: 6,
       scheduleTime: formatScheduleTime(new Date(Date.now() + 15 * 60 * 1000)),
+      eventName: 'Derby Event',
+      eventLocation: 'Outlet/Branch',
       cock1Name: 'Cock C',
       cock2Name: 'Cock D',
       status: 'SCHEDULED'
@@ -109,6 +137,8 @@ export function createMockServer() {
     {
       fightNo: 7,
       scheduleTime: formatScheduleTime(new Date(Date.now() + 30 * 60 * 1000)),
+      eventName: 'Derby Event',
+      eventLocation: 'Outlet/Branch',
       cock1Name: 'Cock E',
       cock2Name: 'Cock F',
       status: 'SCHEDULED'
@@ -116,6 +146,8 @@ export function createMockServer() {
     {
       fightNo: 4,
       scheduleTime: formatScheduleTime(new Date(Date.now() - 45 * 60 * 1000)),
+      eventName: 'Derby Event',
+      eventLocation: 'Outlet/Branch',
       cock1Name: 'Cock X',
       cock2Name: 'Cock Y',
       status: 'DONE'
@@ -140,6 +172,7 @@ export function createMockServer() {
       return {
         userId: u.id,
         email: u.email,
+        role: u.role,
         tellerNo: u.tellerNo,
         tellerName: u.tellerName,
         outlet: u.outlet
@@ -155,6 +188,15 @@ export function createMockServer() {
         throw new Error('Invalid password');
       }
       return { ok: true };
+    },
+    async verifyManagerPin({ pin }) {
+      await sleep(250);
+      const p = String(pin ?? '');
+      const u = users.find((x) => String(x.role).toLowerCase() !== 'cashier' && String(x.pin ?? x.password) === p);
+      if (!u) {
+        throw new Error('Invalid PIN');
+      }
+      return { ok: true, userId: u.id, role: u.role, tellerName: u.tellerName };
     },
     async setFightNo({ fightNo }) {
       await sleep(200);
@@ -177,6 +219,27 @@ export function createMockServer() {
         .filter((m) => String(m.status).toUpperCase() !== 'DONE')
         .sort((a, b) => a.fightNo - b.fightNo)
         .map((m) => ({ ...m }));
+    },
+    async getActiveMatchForSod() {
+      await sleep(250);
+      const active = matches.filter((m) => String(m.status).toUpperCase() === 'ACTIVE');
+      if (active.length === 0) {
+        throw new Error('No ACTIVE match found');
+      }
+
+      const keyCounts = new Map();
+      for (const m of active) {
+        const key = `${m.eventName ?? ''}__${m.eventLocation ?? ''}__${m.scheduleTime ?? ''}`;
+        keyCounts.set(key, (keyCounts.get(key) ?? 0) + 1);
+      }
+
+      for (const [, count] of keyCounts) {
+        if (count > 1) {
+          throw new Error('Duplicate ACTIVE matches found for the same event/location/schedule time');
+        }
+      }
+
+      return { ...active[0] };
     },
     async getCurrentFight() {
       await sleep(150);
@@ -201,13 +264,68 @@ export function createMockServer() {
     async placeBet({ tellerNo, fightNo, side, amount }) {
       await sleep(250);
       const ticketId = Math.random().toString(36).slice(2, 10).toUpperCase();
-      return {
+      const ticket = {
         ticketId,
         tellerNo,
         fightNo,
         side,
         amount,
         createdAt: new Date().toISOString()
+      };
+      placedTickets = [ticket, ...placedTickets].slice(0, 250);
+      return ticket;
+    },
+    async getTicketByCode({ code }) {
+      await sleep(250);
+      const c = String(code ?? '').trim().toUpperCase();
+      if (!c) throw new Error('Ticket code is required');
+      const t = placedTickets.find((x) => String(x.ticketId).toUpperCase() === c);
+      if (!t) throw new Error('Ticket not found');
+      if (claimedCodes.has(c)) throw new Error('Ticket already claimed');
+      const oddsValue = Number(state.odds?.[t.side] ?? 0);
+      const amt = Number(t.amount ?? 0);
+      const payout = (Number.isFinite(amt) ? amt : 0) * (Number.isFinite(oddsValue) ? oddsValue : 0);
+      return {
+        code: c,
+        ticketNo: t.ticketId,
+        eventName: state.fight?.title ?? 'Event',
+        fightNo: t.fightNo,
+        side: t.side,
+        amount: t.amount,
+        odds: oddsValue,
+        possiblePayout: payout,
+        createdAt: t.createdAt,
+        createdAtText: formatDateTime(new Date(t.createdAt))
+      };
+    },
+    async claimTicket({ code, releasingTerminal, claimedBy, claimedAt }) {
+      await sleep(300);
+      const c = String(code ?? '').trim().toUpperCase();
+      if (!c) throw new Error('Ticket code is required');
+      if (claimedCodes.has(c)) throw new Error('Ticket already claimed');
+      const t = placedTickets.find((x) => String(x.ticketId).toUpperCase() === c);
+      if (!t) throw new Error('Ticket not found');
+      claimedCodes.add(c);
+      const oddsValue = Number(state.odds?.[t.side] ?? 0);
+      const amt = Number(t.amount ?? 0);
+      const payout = (Number.isFinite(amt) ? amt : 0) * (Number.isFinite(oddsValue) ? oddsValue : 0);
+      const at = claimedAt ? new Date(claimedAt) : new Date();
+      return {
+        code: c,
+        ticketNo: t.ticketId,
+        eventName: state.fight?.title ?? 'Event',
+        fightNo: t.fightNo,
+        side: t.side,
+        amount: t.amount,
+        odds: oddsValue,
+        possiblePayout: payout,
+        cashier: claimedBy ?? 'Cashier',
+        terminal: releasingTerminal,
+        createdAt: t.createdAt,
+        createdAtText: formatDateTime(new Date(t.createdAt)),
+        claimedAt: at.toISOString(),
+        claimedAtText: formatDateTime(at),
+        releasingTerminal
       };
     },
     async refundTicket({ ticketId }) {
@@ -218,8 +336,11 @@ export function createMockServer() {
       await sleep(250);
       return { fightNo, winnerSide, ok: true };
     },
-    async eod() {
+    async eod(payload) {
       await sleep(350);
+      if (payload) {
+        eodRows = [{ ...payload, id: `${Date.now()}-${Math.random().toString(16).slice(2)}` }, ...eodRows].slice(0, 200);
+      }
       return { ok: true };
     },
     async sod() {

@@ -5,7 +5,7 @@ function money(n) {
   return `₱${(Number.isFinite(v) ? v : 0).toLocaleString()}`;
 }
 
-export default function TransactionsOffcanvas({ open, onRequestClose, onClosed, items }) {
+export default function TransactionsOffcanvas({ open, onRequestClose, onClosed, items, side = 'left' }) {
   const [closing, setClosing] = useState(false);
   const panelRef = useRef(null);
 
@@ -36,7 +36,7 @@ export default function TransactionsOffcanvas({ open, onRequestClose, onClosed, 
       onMouseDown={requestClose}
     >
       <div
-        className={`offcanvas-panel right ${open && !closing ? 'is-open' : ''} ${closing ? 'is-closing' : ''}`}
+        className={`offcanvas-panel ${side === 'right' ? 'right' : ''} ${open && !closing ? 'is-open' : ''} ${closing ? 'is-closing' : ''}`}
         ref={panelRef}
         tabIndex={-1}
         onMouseDown={(e) => e.stopPropagation()}
@@ -69,9 +69,6 @@ export default function TransactionsOffcanvas({ open, onRequestClose, onClosed, 
                 <>
                   <div className="tx-row"><div className="tx-k">Side</div><div className="tx-v">{t.side}</div></div>
                   <div className="tx-row"><div className="tx-k">Amount</div><div className="tx-v">{money(t.amount)}</div></div>
-                  <div className="tx-row"><div className="tx-k">Paid Amount</div><div className="tx-v">{money(t.paidAmount)}</div></div>
-                  <div className="tx-row"><div className="tx-k">Change</div><div className="tx-v">{money(t.changeAmount)}</div></div>
-                  <div className="tx-row"><div className="tx-k">Payment Type</div><div className="tx-v">{t.paymentType}</div></div>
                 </>
               )}
             </div>

@@ -4,7 +4,7 @@ const sideMeta = {
   WALA: { className: 'side-wala', label: 'WALA' }
 };
 
-export default function BetSideCards({ side, onSideChange, odds }) {
+export default function BetSideCards({ side, onSideChange, odds, disabled }) {
   return (
     <div className="side-row">
       {Object.keys(sideMeta).map((k) => {
@@ -14,6 +14,7 @@ export default function BetSideCards({ side, onSideChange, odds }) {
           <button
             key={k}
             className={`side-card ${meta.className} ${selected ? 'selected' : ''}`}
+            disabled={disabled}
             onClick={() => onSideChange(k)}
           >
             <div className="side-label">{meta.label}</div>
